@@ -6,9 +6,10 @@ interface ConnectionLineProps {
   toNode?: Node;
   connectionId: string;
   onDelete: (connectionId: string) => void;
+  isSelected?: boolean;
 }
 
-export function ConnectionLine({ fromNode, toNode, connectionId, onDelete }: ConnectionLineProps) {
+export function ConnectionLine({ fromNode, toNode, connectionId, onDelete, isSelected }: ConnectionLineProps) {
   const [isHovered, setIsHovered] = useState(false);
   const hideTimeoutRef = useRef<number | null>(null);
 
@@ -21,15 +22,46 @@ export function ConnectionLine({ fromNode, toNode, connectionId, onDelete }: Con
 
   const dx = toCenterX - fromCenterX;
   const dy = toCenterY - fromCenterY;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  
+  if (distance === 0) return null;
 
-  const fromX = fromCenterX + dx * 0.1;
-  const fromY = fromCenterY + dy * 0.1;
-  const toX = toCenterX - dx * 0.1;
-  const toY = toCenterY - dy * 0.1;
+  const dirX = dx / distance;
+  const dirY = dy / distance;
 
-  const cp1x = fromX + dx * 0.5;
+  const fromHalfWidth = fromNode.width / 2;
+  const fromHalfHeight = fromNode.height / 2;
+  const toHalfWidth = toNode.width / 2;
+  const toHalfHeight = toNode.height / 2;
+
+  const getIntersection = (
+    centerX: number,
+    centerY: number,
+    halfWidth: number,
+    halfHeight: number,
+    dirX: number,
+    dirY: number
+  ) => {
+    const tX = halfWidth / Math.abs(dirX || 1);
+    const tY = halfHeight / Math.abs(dirY || 1);
+    const t = Math.min(tX, tY);
+    return {
+      x: centerX + dirX * t,
+      y: centerY + dirY * t,
+    };
+  };
+
+  const fromIntersection = getIntersection(fromCenterX, fromCenterY, fromHalfWidth, fromHalfHeight, dirX, dirY);
+  const toIntersection = getIntersection(toCenterX, toCenterY, toHalfWidth, toHalfHeight, -dirX, -dirY);
+
+  const fromX = fromIntersection.x;
+  const fromY = fromIntersection.y;
+  const toX = toIntersection.x;
+  const toY = toIntersection.y;
+
+  const cp1x = fromX + dx * 0.3;
   const cp1y = fromY;
-  const cp2x = toX - dx * 0.5;
+  const cp2x = toX - dx * 0.3;
   const cp2y = toY;
 
   const pathD = `M ${fromX} ${fromY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${toX} ${toY}`;
@@ -64,6 +96,13 @@ export function ConnectionLine({ fromNode, toNode, connectionId, onDelete }: Con
 
   return (
     <g onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+      <defs>
+        <linearGradient id={`flow-gradient-${connectionId}`} x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.3" />
+          <stop offset="50%" stopColor="#a78bfa" stopOpacity="1" />
+          <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.3" />
+        </linearGradient>
+      </defs>
       <path
         d={pathD}
         fill="none"
@@ -85,6 +124,29 @@ export function ConnectionLine({ fromNode, toNode, connectionId, onDelete }: Con
         strokeWidth={isHovered ? '3' : '2'}
         strokeLinecap="round"
       />
+      {isSelected && (
+        <path
+          d={pathD}
+          fill="none"
+          stroke={`url(#flow-gradient-${connectionId})`}
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray="20 10"
+          style={{
+            animation: 'flowAnimation 1s linear infinite',
+          }}
+        />
+      )}
+      <style>{`
+        @keyframes flowAnimation {
+          from {
+            stroke-dashoffset: 30;
+          }
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+      `}</style>
       {isHovered && (
         <foreignObject
           x={midX - 16}

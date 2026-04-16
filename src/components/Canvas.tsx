@@ -106,33 +106,6 @@ export function Canvas({
     onCanvasClick(e);
   };
 
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    
-    if (e.ctrlKey) {
-      const scaleFactor = e.deltaY > 0 ? 0.9 : 1.1;
-      const newScale = Math.max(0.1, Math.min(3, transform.scale * scaleFactor));
-      
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (rect) {
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        
-        const newX = mouseX - (mouseX - transform.x) * (newScale / transform.scale);
-        const newY = mouseY - (mouseY - transform.y) * (newScale / transform.scale);
-        
-        setTransform({ x: newX, y: newY, scale: newScale });
-      }
-    } else {
-      const sensitivity = 0.8;
-      setTransform({
-        ...transform,
-        x: transform.x - e.deltaX * sensitivity,
-        y: transform.y - e.deltaY * sensitivity,
-      });
-    }
-  };
-
   useEffect(() => {
     if (isDragging) {
       document.addEventListener('mouseup', handleMouseUp);
@@ -143,6 +116,44 @@ export function Canvas({
       document.removeEventListener('mousemove', handleDocumentMouseMove);
     };
   }, [isDragging, dragStart, dragTransformStart, transform]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleWheelWithPassiveFalse = (e: WheelEvent) => {
+      e.preventDefault();
+      
+      if (e.ctrlKey) {
+        const scaleFactor = e.deltaY > 0 ? 0.9 : 1.1;
+        const newScale = Math.max(0.1, Math.min(3, transform.scale * scaleFactor));
+        
+        const rect = canvas.getBoundingClientRect();
+        if (rect) {
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+          
+          const newX = mouseX - (mouseX - transform.x) * (newScale / transform.scale);
+          const newY = mouseY - (mouseY - transform.y) * (newScale / transform.scale);
+          
+          setTransform({ x: newX, y: newY, scale: newScale });
+        }
+      } else {
+        const sensitivity = 0.8;
+        setTransform({
+          ...transform,
+          x: transform.x - e.deltaX * sensitivity,
+          y: transform.y - e.deltaY * sensitivity,
+        });
+      }
+    };
+
+    canvas.addEventListener('wheel', handleWheelWithPassiveFalse, { passive: false });
+    
+    return () => {
+      canvas.removeEventListener('wheel', handleWheelWithPassiveFalse);
+    };
+  }, [transform, setTransform]);
 
 
 
@@ -155,7 +166,6 @@ export function Canvas({
         handleCanvasMouseDown(e);
       }}
       onMouseMove={handleMouseMove}
-      onWheel={handleWheel}
       onClick={handleClick}
       onContextMenu={onCanvasContextMenu}
       style={{
@@ -197,6 +207,7 @@ export function Canvas({
               toNode={nodes.find((n) => n.id === conn.toId)}
               connectionId={conn.id}
               onDelete={onDeleteConnection}
+              isSelected={conn.fromId === selectedNodeId || conn.toId === selectedNodeId}
             />
           ))}
         </svg>
