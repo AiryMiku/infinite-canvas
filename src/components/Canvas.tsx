@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Node, Connection, Transform } from '../types';
 import { NodeBlock } from './NodeBlock.tsx';
 import { ConnectionLine } from './ConnectionLine.tsx';
+import { Theme } from '../utils/theme';
 
 interface CanvasProps {
   nodes: Node[];
@@ -19,6 +20,7 @@ interface CanvasProps {
   onDeleteConnection: (connectionId: string) => void;
   onNodeContextMenu: (e: React.MouseEvent, nodeId: string) => void;
   onCanvasContextMenu: (e: React.MouseEvent) => void;
+  theme: Theme;
 }
 
 export function Canvas({
@@ -37,6 +39,7 @@ export function Canvas({
   onDeleteConnection,
   onNodeContextMenu,
   onCanvasContextMenu,
+  theme,
 }: CanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -173,7 +176,7 @@ export function Canvas({
         width: '100%',
         height: '100%',
         overflow: 'hidden',
-        background: '#1a1a2e',
+        background: theme.canvas.background,
         cursor: isDragging ? 'grabbing' : 'default',
       }}
     >
@@ -208,6 +211,7 @@ export function Canvas({
               connectionId={conn.id}
               onDelete={onDeleteConnection}
               isSelected={conn.fromId === selectedNodeId || conn.toId === selectedNodeId}
+              theme={theme}
             />
           ))}
         </svg>
@@ -247,6 +251,7 @@ export function Canvas({
                 }
               }}
               onContextMenu={(e: React.MouseEvent) => onNodeContextMenu(e, node.id)}
+              theme={theme}
             />
           </div>
         ))}

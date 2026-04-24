@@ -1,4 +1,5 @@
 import React from 'react';
+import { Theme } from '../utils/theme';
 
 interface MenuItem {
   label: string;
@@ -12,9 +13,10 @@ interface ContextMenuProps {
   y: number;
   items: MenuItem[];
   onClose: () => void;
+  theme: Theme;
 }
 
-export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
+export function ContextMenu({ x, y, items, onClose, theme }: ContextMenuProps) {
   const eventCountRef = React.useRef<number>(0);
 
   React.useEffect(() => {
@@ -52,11 +54,11 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
         position: 'fixed',
         left: `${x}px`,
         top: `${y}px`,
-        background: '#1e293b',
+        background: theme.contextMenu.background,
         borderRadius: '8px',
         padding: '4px',
         boxShadow: '0 10px 25px rgba(0, 0, 0, 0.4)',
-        border: '1px solid #334155',
+        border: `1px solid ${theme.contextMenu.border}`,
         zIndex: 10000,
         minWidth: '160px',
       }}
@@ -77,7 +79,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
             padding: '8px 12px',
             border: 'none',
             background: 'transparent',
-            color: item.disabled ? '#475569' : '#e2e8f0',
+            color: item.disabled ? theme.contextMenu.textDisabled : theme.contextMenu.text,
             fontSize: '13px',
             textAlign: 'left',
             cursor: item.disabled ? 'not-allowed' : 'pointer',
@@ -86,7 +88,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
           }}
           onMouseEnter={(e) => {
             if (!item.disabled) {
-              e.currentTarget.style.background = '#334155';
+              e.currentTarget.style.background = theme.contextMenu.itemHover;
             }
           }}
           onMouseLeave={(e) => {

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Node } from '../types';
+import { Theme } from '../utils/theme';
 
 interface ConnectionLineProps {
   fromNode?: Node;
@@ -7,9 +8,10 @@ interface ConnectionLineProps {
   connectionId: string;
   onDelete: (connectionId: string) => void;
   isSelected?: boolean;
+  theme: Theme;
 }
 
-export function ConnectionLine({ fromNode, toNode, connectionId, onDelete, isSelected }: ConnectionLineProps) {
+export function ConnectionLine({ fromNode, toNode, connectionId, onDelete, isSelected, theme }: ConnectionLineProps) {
   const [isHovered, setIsHovered] = useState(false);
   const hideTimeoutRef = useRef<number | null>(null);
 
@@ -98,9 +100,9 @@ export function ConnectionLine({ fromNode, toNode, connectionId, onDelete, isSel
     <g onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       <defs>
         <linearGradient id={`flow-gradient-${connectionId}`} x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.3" />
-          <stop offset="50%" stopColor="#a78bfa" stopOpacity="1" />
-          <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.3" />
+          <stop offset="0%" stopColor={theme.connection.gradientStart} stopOpacity="0.3" />
+          <stop offset="50%" stopColor={theme.connection.gradientEnd} stopOpacity="1" />
+          <stop offset="100%" stopColor={theme.connection.gradientStart} stopOpacity="0.3" />
         </linearGradient>
       </defs>
       <path
@@ -113,14 +115,14 @@ export function ConnectionLine({ fromNode, toNode, connectionId, onDelete, isSel
       <path
         d={pathD}
         fill="none"
-        stroke={isHovered ? '#64748b' : '#4a5568'}
+        stroke={isHovered ? theme.connection.lineHover : theme.connection.line}
         strokeWidth={isHovered ? '4' : '3'}
         strokeLinecap="round"
       />
       <path
         d={pathD}
         fill="none"
-        stroke={isHovered ? '#a78bfa' : '#8b5cf6'}
+        stroke={isHovered ? theme.connection.gradientEnd : theme.connection.gradientStart}
         strokeWidth={isHovered ? '3' : '2'}
         strokeLinecap="round"
       />
