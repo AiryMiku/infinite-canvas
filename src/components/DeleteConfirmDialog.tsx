@@ -1,12 +1,13 @@
-
 import React from 'react';
 import { Theme } from '../utils/theme';
+import { Translation } from '../utils/i18n';
 
 interface DeleteConfirmDialogProps {
   isOpen: boolean;
   onConfirm: () => void;
   onCancel: () => void;
   theme: Theme;
+  t: Translation;
 }
 
 export function DeleteConfirmDialog({
@@ -14,6 +15,7 @@ export function DeleteConfirmDialog({
   onConfirm,
   onCancel,
   theme,
+  t,
 }: DeleteConfirmDialogProps) {
   if (!isOpen) return null;
 
@@ -53,7 +55,7 @@ export function DeleteConfirmDialog({
             fontSize: '18px',
           }}
         >
-          确认删除
+          {t.dialogs.deleteTitle}
         </h3>
         <p
           style={{
@@ -63,7 +65,7 @@ export function DeleteConfirmDialog({
             lineHeight: '1.5',
           }}
         >
-          确定要删除这个节点吗？此操作无法撤销。
+          {t.dialogs.deleteMessage}
         </p>
         <div
           style={{
@@ -91,7 +93,7 @@ export function DeleteConfirmDialog({
               e.currentTarget.style.background = theme.button.background;
             }}
           >
-            取消
+            {t.buttons.cancel}
           </button>
           <button
             onClick={onConfirm}
@@ -113,7 +115,7 @@ export function DeleteConfirmDialog({
               e.currentTarget.style.background = '#ef4444';
             }}
           >
-            删除
+            {t.buttons.delete}
           </button>
         </div>
       </div>

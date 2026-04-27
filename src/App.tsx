@@ -4,7 +4,11 @@ import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
 import { ContextMenu } from './components/ContextMenu';
 import { useCanvasState } from './hooks/useCanvasState';
 import { Node } from './types';
-import { getTheme, Theme } from './utils/theme';
+import { getTheme, type Theme } from './utils/theme';
+import { getTranslation, type Language, type Translation } from './utils/i18n';
+
+// 应用版本号
+const APP_VERSION = '1.0.0';
 
 type ContextMenuType = 'canvas' | 'node' | null;
 
@@ -32,6 +36,8 @@ function App() {
   const [themeName, setThemeName] = useState<'dark' | 'light'>('dark');
   const theme = getTheme(themeName);
   const [showHelp, setShowHelp] = useState(true);
+  const [lang, setLang] = useState<Language>('zh');
+  const t = getTranslation(lang);
   const [contextMenu, setContextMenu] = useState<{
     type: ContextMenuType;
     x: number;
@@ -279,12 +285,12 @@ function App() {
     if (contextMenu?.type === 'canvas') {
       return [
         {
-          label: '添加节点',
+          label: t.contextMenu.addNode,
           icon: '➕',
           onClick: handleAddNode,
         },
         {
-          label: '粘贴',
+          label: t.contextMenu.paste,
           icon: '📋',
           onClick: handlePasteNode,
           disabled: !copiedNode,
@@ -293,12 +299,12 @@ function App() {
     } else if (contextMenu?.type === 'node' && contextMenu.nodeId) {
       return [
         {
-          label: '复制',
+          label: t.contextMenu.copy,
           icon: '📋',
           onClick: () => handleCopyNode(contextMenu.nodeId!),
         },
         {
-          label: '删除',
+          label: t.contextMenu.deleteNode,
           icon: '🗑️',
           onClick: () => handleDeleteNode(contextMenu.nodeId!),
         },
@@ -324,9 +330,21 @@ function App() {
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showHelp ? '8px' : '0' }}>
-          <h1 style={{ margin: '0', color: theme.toolbar.text, fontSize: '16px' }}>
-            🧠 无限画布思维导图
-          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h1 style={{ margin: '0', color: theme.toolbar.text, fontSize: '16px' }}>
+              {t.app.title}
+            </h1>
+            <span style={{ 
+              fontSize: '10px', 
+              color: theme.toolbar.textMuted, 
+              background: 'rgba(0,0,0,0.1)', 
+              padding: '2px 6px', 
+              borderRadius: '4px',
+              opacity: 0.7
+            }}>
+              v{APP_VERSION}
+            </span>
+          </div>
           <button
             onClick={() => setShowHelp(!showHelp)}
             style={{
@@ -339,7 +357,7 @@ function App() {
               marginLeft: '8px',
               transition: 'transform 0.2s',
             }}
-            title={showHelp ? '收起帮助' : '显示帮助'}
+            title={showHelp ? t.help.collapseHelp : t.help.expandHelp}
           >
             {showHelp ? '▲' : '▼'}
           </button>
@@ -348,30 +366,55 @@ function App() {
         {showHelp && (
           <>
             <p style={{ margin: '0 0 10px 0', color: theme.toolbar.textSecondary, fontSize: '12px' }}>
-              数据已自动保存 · 刷新不会丢失
+              {t.app.autoSave}
             </p>
             <div style={{ margin: '0 0 8px 0', color: theme.toolbar.textMuted, fontSize: '10px', lineHeight: '1.6' }}>
-              <p style={{ margin: '0' }}>• Ctrl + 滚轮：缩放画布</p>
-              <p style={{ margin: '0' }}>• 滚轮上下/左右：拖动画布</p>
-              <p style={{ margin: '0' }}>• 鼠标拖拽：拖动画布</p>
-              <p style={{ margin: '0' }}>• 右键空白处：添加节点/粘贴</p>
-              <p style={{ margin: '0' }}>• 右键节点：复制/删除</p>
-              <p style={{ margin: '0' }}>• 悬浮连接线：显示删除按钮</p>
+              <p style={{ margin: '0' }}>{t.help.ctrlScroll}</p>
+              <p style={{ margin: '0' }}>{t.help.scrollPan}</p>
+              <p style={{ margin: '0' }}>{t.help.mouseDrag}</p>
+              <p style={{ margin: '0' }}>{t.help.rightClickCanvas}</p>
+              <p style={{ margin: '0' }}>{t.help.rightClickNode}</p>
+              <p style={{ margin: '0' }}>{t.help.hoverConnection}</p>
             </div>
             {connectingFrom && (
               <p style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '12px', fontWeight: '500' }}>
-                🔗 连接模式：点击另一个节点完成连接（点击空白处取消）
+                {t.help.connectModeActive}
               </p>
             )}
             {!connectingFrom && (
               <p style={{ margin: '0 0 10px 0', color: theme.toolbar.textMuted, fontSize: '11px' }}>
-                选中节点后点击右侧 + 按钮开始连接
+                {t.help.connectModeHint}
               </p>
             )}
           </>
         )}
 
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => {
+              const langs: Language[] = ['zh', 'en', 'ja'];
+              const currentIdx = langs.indexOf(lang);
+              setLang(langs[(currentIdx + 1) % langs.length]);
+            }}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '8px',
+              border: `1px solid ${theme.button.border}`,
+              background: theme.button.background,
+              color: theme.button.text,
+              fontSize: '12px',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = theme.button.backgroundHover;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = theme.button.background;
+            }}
+          >
+            {lang === 'zh' ? '🇨🇳 中文' : lang === 'en' ? '🇺🇸 English' : '🇯🇵 日本語'}
+          </button>
           <button
             onClick={() => setThemeName(themeName === 'dark' ? 'light' : 'dark')}
             style={{
@@ -391,7 +434,7 @@ function App() {
               e.currentTarget.style.background = theme.button.background;
             }}
           >
-            {themeName === 'dark' ? '☀️ 浅色' : '🌙 深色'}
+            {themeName === 'dark' ? t.buttons.lightTheme : t.buttons.darkTheme}
           </button>
           <button
             onClick={handleExportImage}
@@ -412,7 +455,7 @@ function App() {
               e.currentTarget.style.background = theme.button.background;
             }}
           >
-            📷 导出图片
+            {t.buttons.exportImage}
           </button>
           <button
             onClick={handleRequestClearAll}
@@ -433,7 +476,7 @@ function App() {
               e.currentTarget.style.background = theme.button.background;
             }}
           >
-            🗑️ 清空画布
+            {t.buttons.clearCanvas}
           </button>
         </div>
       </div>
@@ -458,6 +501,7 @@ function App() {
           onNodeContextMenu={handleNodeContextMenu}
           onCanvasContextMenu={handleCanvasContextMenu}
           theme={theme}
+          t={t}
         />
       </div>
 
@@ -466,6 +510,7 @@ function App() {
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
         theme={theme}
+        t={t}
       />
 
       {showClearDialog && (
@@ -504,7 +549,7 @@ function App() {
                 fontSize: '18px',
               }}
             >
-              清空画布
+              {t.dialogs.clearTitle}
             </h3>
             <p
               style={{
@@ -514,7 +559,7 @@ function App() {
                 lineHeight: '1.5',
               }}
             >
-              确定要清空所有节点和连接吗？此操作无法撤销。
+              {t.dialogs.clearMessage}
             </p>
             <div
               style={{
@@ -542,7 +587,7 @@ function App() {
                   e.currentTarget.style.background = theme.button.background;
                 }}
               >
-                取消
+                {t.buttons.cancel}
               </button>
               <button
                 onClick={handleConfirmClearAll}
@@ -564,7 +609,7 @@ function App() {
                   e.currentTarget.style.background = '#ef4444';
                 }}
               >
-                清空
+                {t.buttons.clearCanvas}
               </button>
             </div>
           </div>
@@ -580,6 +625,7 @@ function App() {
             items={getContextMenuItems()}
             onClose={handleCloseContextMenu}
             theme={theme}
+            t={t}
           />
         );
       })()}

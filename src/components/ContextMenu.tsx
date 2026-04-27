@@ -1,5 +1,6 @@
 import React from 'react';
 import { Theme } from '../utils/theme';
+import { Translation } from '../utils/i18n';
 
 interface MenuItem {
   label: string;
@@ -14,9 +15,10 @@ interface ContextMenuProps {
   items: MenuItem[];
   onClose: () => void;
   theme: Theme;
+  t: Translation;
 }
 
-export function ContextMenu({ x, y, items, onClose, theme }: ContextMenuProps) {
+export function ContextMenu({ x, y, items, onClose, theme, t }: ContextMenuProps) {
   const eventCountRef = React.useRef<number>(0);
 
   React.useEffect(() => {

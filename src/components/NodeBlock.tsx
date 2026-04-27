@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Node } from '../types';
 import { Theme } from '../utils/theme';
+import { Translation } from '../utils/i18n';
 
 interface NodeBlockProps {
   node: Node;
@@ -15,6 +16,7 @@ interface NodeBlockProps {
   onConnectTo: (toId: string) => void;
   onContextMenu: (e: React.MouseEvent) => void;
   theme: Theme;
+  t: Translation;
 }
 
 export function NodeBlock({
@@ -30,6 +32,7 @@ export function NodeBlock({
   onConnectTo,
   onContextMenu,
   theme,
+  t,
 }: NodeBlockProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -187,7 +190,7 @@ export function NodeBlock({
             lineHeight: '1.4',
             cursor: 'text',
           }}
-          placeholder="输入文本..."
+          placeholder={t.placeholders.nodeText}
         />
       </div>
     </>

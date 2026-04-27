@@ -3,6 +3,7 @@ import { Node, Connection, Transform } from '../types';
 import { NodeBlock } from './NodeBlock.tsx';
 import { ConnectionLine } from './ConnectionLine.tsx';
 import { Theme } from '../utils/theme';
+import { Translation } from '../utils/i18n';
 
 interface CanvasProps {
   nodes: Node[];
@@ -21,6 +22,7 @@ interface CanvasProps {
   onNodeContextMenu: (e: React.MouseEvent, nodeId: string) => void;
   onCanvasContextMenu: (e: React.MouseEvent) => void;
   theme: Theme;
+  t: Translation;
 }
 
 export function Canvas({
@@ -40,6 +42,7 @@ export function Canvas({
   onNodeContextMenu,
   onCanvasContextMenu,
   theme,
+  t,
 }: CanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -252,6 +255,7 @@ export function Canvas({
               }}
               onContextMenu={(e: React.MouseEvent) => onNodeContextMenu(e, node.id)}
               theme={theme}
+              t={t}
             />
           </div>
         ))}
