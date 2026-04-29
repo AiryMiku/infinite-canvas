@@ -2,6 +2,8 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Canvas } from './components/Canvas';
 import { DeleteConfirmDialog } from './components/DeleteConfirmDialog';
 import { ContextMenu } from './components/ContextMenu';
+import { ScaleIndicator } from './components/ScaleIndicator';
+import { MiniMap } from './components/MiniMap';
 import { useCanvasState } from './hooks/useCanvasState';
 import { Node } from './types';
 import { getTheme, type Theme } from './utils/theme';
@@ -36,6 +38,7 @@ function App() {
   const [themeName, setThemeName] = useState<'dark' | 'light'>('dark');
   const theme = getTheme(themeName);
   const [showHelp, setShowHelp] = useState(true);
+  const [showMiniMap, setShowMiniMap] = useState(false);
   const [lang, setLang] = useState<Language>('zh');
   const t = getTranslation(lang);
   const [contextMenu, setContextMenu] = useState<{
@@ -46,6 +49,33 @@ function App() {
   } | null>(null);
   const [copiedNode, setCopiedNode] = useState<Node | null>(null);
   const lastContextMenuPos = useRef<{ x: number; y: number } | null>(null);
+
+  const handleZoomIn = useCallback(() => {
+    setTransform((prev) => ({
+      ...prev,
+      scale: Math.min(3, prev.scale * 1.2),
+    }));
+  }, [setTransform]);
+
+  const handleZoomOut = useCallback(() => {
+    setTransform((prev) => ({
+      ...prev,
+      scale: Math.max(0.1, prev.scale * 0.8),
+    }));
+  }, [setTransform]);
+
+  const handleMiniMapClick = useCallback((worldX: number, worldY: number) => {
+    // 将世界坐标转换为画布偏移量，使该点居中
+    setTransform((prev) => {
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      return {
+        ...prev,
+        x: centerX - worldX * prev.scale,
+        y: centerY - worldY * prev.scale,
+      };
+    });
+  }, [setTransform]);
 
   const handleExportImage = useCallback(() => {
     // 如果没有节点就不导出
@@ -629,6 +659,66 @@ function App() {
           />
         );
       })()}
+
+      <div style={{
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: '12px',
+        zIndex: 99999,
+        pointerEvents: 'auto',
+      }}>
+        <button
+          onClick={() => setShowMiniMap(!showMiniMap)}
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '8px',
+            border: `2px solid ${theme.button.border}`,
+            background: showMiniMap ? theme.node.borderSelected : theme.button.background,
+            color: theme.button.text,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '20px',
+            transition: 'all 0.2s',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
+            pointerEvents: 'auto',
+          }}
+        >
+          🗺️
+        </button>
+        <ScaleIndicator
+          scale={transform.scale}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          theme={theme}
+        />
+      </div>
+
+      {showMiniMap && (
+        <div style={{
+          position: 'fixed',
+          bottom: '70px',
+          right: '20px',
+          zIndex: 99999,
+          background: 'rgba(0,0,0,0.2)',
+          padding: '8px',
+          borderRadius: '12px',
+          backdropFilter: 'blur(4px)',
+        }}>
+          <MiniMap
+            nodes={nodes}
+            transform={transform}
+            theme={theme}
+            onMapClick={handleMiniMapClick}
+          />
+        </div>
+      )}
     </div>
   );
 }
